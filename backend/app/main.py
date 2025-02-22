@@ -3,12 +3,14 @@ from pydantic import BaseModel
 from typing import List
 import joblib
 import numpy as np
+import os 
 
 # Initialize FastAPI app
 app = FastAPI()
 
 # Load the trained XGBoost model
-model = joblib.load("fraud_detection_model.pkl")
+model_path = os.path.join(os.path.dirname(__file__), "..", "fraud_detection_model.pkl")
+model = joblib.load(model_path)
 
 # Define input data schema for single prediction
 class SingleInput(BaseModel):
@@ -52,7 +54,7 @@ class BatchInput(BaseModel):
 def predict_single(input_data: SingleInput):
     try:
         # Convert input data to numpy array
-        input_array = np.array(list(input_data.dict().values())).reshape(1, -1)
+        input_array = np.array(list(input_data.model_dump().values())).reshape(1, -1)
         # Make prediction
         prediction = model.predict(input_array)
         return {"prediction": int(prediction[0])}
@@ -64,7 +66,7 @@ def predict_single(input_data: SingleInput):
 def predict_batch(input_data: BatchInput):
     try:
         # Convert input data to numpy array
-        input_list = [list(row.dict().values()) for row in input_data.data]
+        input_list = [list(row.model_dump().values()) for row in input_data.data]
         input_array = np.array(input_list)
         # Make predictions
         predictions = model.predict(input_array)

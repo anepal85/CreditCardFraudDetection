@@ -10,6 +10,7 @@ __pycache__/
 *.sqlite3
 
 backend/creditcard.csv
+backend/tests/fraud_detection_model.pkl
 # Node.js
 node_modules/
 npm-debug.log*
