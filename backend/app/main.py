@@ -34,7 +34,7 @@ def predict_single(input_data: SingleInput):
     try:
         logger.info(f"Received input data: {input_data}")
         # Convert input data to numpy array
-        input_array = np.array(list(input_data.model_dump().values())).reshape(1, -1)
+        input_array = np.array(list(input_data.dict().values())).reshape(1, -1)
         logger.info(f"Input array: {input_array}")
         # Make prediction
         prediction = model.predict(input_array)
@@ -50,7 +50,7 @@ def predict_batch(input_data: BatchInput):
     try:
         logger.info(f"Received batch input data: {input_data}")
         # Convert input data to numpy array
-        input_list = [list(row.model_dump().values()) for row in input_data.data]
+        input_list = [list(row.dict().values()) for row in input_data.data]
         input_array = np.array(input_list)
         logger.info(f"Input array: {input_array}")
         # Make predictions

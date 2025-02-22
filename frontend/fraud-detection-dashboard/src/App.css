@@ -1,5 +1,6 @@
 .App {
   text-align: center;
+  padding: 20px;
 }
 
 .App-logo {
@@ -28,6 +29,32 @@
   color: #61dafb;
 }
 
+
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.row {
+  display: flex;
+  justify-content: center;
+}
+
+.input-form {
+  border: 1px solid #ccc;
+  padding: 20px;
+  border-radius: 8px;
+  width: 50%;
+}
+
+.chart {
+  width: 80%;
+  margin: 0 auto;
+}
+
+
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);
@@ -36,3 +63,6 @@
     transform: rotate(360deg);
   }
 }
+
+
+
