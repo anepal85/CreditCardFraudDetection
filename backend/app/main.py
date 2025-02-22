@@ -1,78 +1,72 @@
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-from typing import List
-import joblib
+from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
 import numpy as np
-import os 
+import joblib
+import os
+import logging
+from .model import SingleInput, BatchInput
 
 # Initialize FastAPI app
 app = FastAPI()
 
+# Enable CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # Allow requests from React app
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all methods
+    allow_headers=["*"],  # Allow all headers
+)
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # Load the trained XGBoost model
-model_path = os.path.join(os.path.dirname(__file__), "..", "fraud_detection_model.pkl")
+current_dir = os.path.dirname(os.path.abspath(__file__))
+model_path = os.path.join(current_dir, "..", "fraud_detection_model.pkl")
 model = joblib.load(model_path)
-
-# Define input data schema for single prediction
-class SingleInput(BaseModel):
-    Time: float
-    V1: float
-    V2: float
-    V3: float
-    V4: float
-    V5: float
-    V6: float
-    V7: float
-    V8: float
-    V9: float
-    V10: float
-    V11: float
-    V12: float
-    V13: float
-    V14: float
-    V15: float
-    V16: float
-    V17: float
-    V18: float
-    V19: float
-    V20: float
-    V21: float
-    V22: float
-    V23: float
-    V24: float
-    V25: float
-    V26: float
-    V27: float
-    V28: float
-    Amount: float
-
-# Define input data schema for batch prediction
-class BatchInput(BaseModel):
-    data: List[SingleInput]
 
 # Single prediction endpoint
 @app.post("/predict")
 def predict_single(input_data: SingleInput):
     try:
+        logger.info(f"Received input data: {input_data}")
         # Convert input data to numpy array
         input_array = np.array(list(input_data.model_dump().values())).reshape(1, -1)
+        logger.info(f"Input array: {input_array}")
         # Make prediction
         prediction = model.predict(input_array)
+        logger.info(f"Prediction: {prediction}")
         return {"prediction": int(prediction[0])}
     except Exception as e:
+        logger.error(f"Error making prediction: {e}")
         raise HTTPException(status_code=400, detail=str(e))
 
 # Batch prediction endpoint
 @app.post("/predict_batch")
 def predict_batch(input_data: BatchInput):
     try:
+        logger.info(f"Received batch input data: {input_data}")
         # Convert input data to numpy array
         input_list = [list(row.model_dump().values()) for row in input_data.data]
         input_array = np.array(input_list)
+        logger.info(f"Input array: {input_array}")
         # Make predictions
         predictions = model.predict(input_array)
+        logger.info(f"Predictions: {predictions}")
         return {"predictions": predictions.tolist()}
     except Exception as e:
+        logger.error(f"Error making batch prediction: {e}")
         raise HTTPException(status_code=400, detail=str(e))
+
+# Endpoint to serve the test dataset
+@app.get("/test_data")
+def get_test_data():
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    test_data_path = os.path.join(current_dir, "..", "test.csv")
+    return FileResponse(test_data_path)
 
 # Root endpoint
 @app.get("/")
